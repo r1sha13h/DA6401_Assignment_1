@@ -25,42 +25,34 @@ class NeuralNetwork:
         # Network architecture
         self.input_size = 784  # MNIST/Fashion-MNIST: 28x28 = 784
         self.output_size = 10  # 10 classes
-        self.hidden_sizes = cli_args.hidden_size
-        self.num_layers = cli_args.num_layers
-        self.activation = cli_args.activation
-        self.weight_init = cli_args.weight_init
+        raw_hidden_size = getattr(cli_args, 'hidden_size', [64])
+        provided_sizes = raw_hidden_size if isinstance(raw_hidden_size, list) else [raw_hidden_size]
+        self.num_layers = getattr(cli_args, 'num_layers', len(provided_sizes))
+        # Broadcast logic
+        if len(provided_sizes) == 1 and self.num_layers > 1:
+            self.hidden_sizes = provided_sizes * self.num_layers
+        elif len(provided_sizes) > self.num_layers:
+            self.hidden_sizes = provided_sizes[:self.num_layers]
+        else:
+            self.hidden_sizes = provided_sizes
+        self.activation_str = getattr(cli_args, 'activation', 'relu')
+        self.weight_init = getattr(cli_args, 'weight_init', 'random')
 
         # Training parameters
-        self.learning_rate = cli_args.learning_rate
-        self.weight_decay = cli_args.weight_decay
-        self.loss_name = cli_args.loss
+        self.learning_rate = getattr(cli_args, 'learning_rate', 0.01)
+        self.weight_decay = getattr(cli_args, 'weight_decay', 0.0)
+        self.loss_name = getattr(cli_args, 'loss', 'cross_entropy')
 
         # Build network layers
         self.layers = []
-        layer_sizes = [self.input_size] + self.hidden_sizes + [self.output_size]
-
-        for i in range(len(layer_sizes) - 1):
-            # Use specified activation for hidden layers, no activation for output
-            if i < len(layer_sizes) - 2:
-                activation = self.activation
-            else:
-                activation = 'softmax'  # Output layer (but we return logits)
-
-            layer = NeuralLayer(
-                input_size=layer_sizes[i],
-                output_size=layer_sizes[i + 1],
-                activation=activation,
-                weight_init=self.weight_init
-            )
-            self.layers.append(layer)
+        self._build_network()
 
         # Loss function
         self.loss_fn = get_loss_function(self.loss_name)
-        self.loss_derivative = get_loss_derivative(self.loss_name)
 
         # Optimizer
         self.optimizer = get_optimizer(
-            cli_args.optimizer,
+            getattr(cli_args, 'optimizer', 'sgd'),
             learning_rate=self.learning_rate,
             weight_decay=self.weight_decay
         )
@@ -78,12 +70,26 @@ class NeuralNetwork:
         self.iter_count = 0
         self.dead_neurons_history = []
 
+    def _build_network(self):
+        """Builds architecture: hidden layers with activation, output layer with linear."""
+        self.layers = []
+        current_input_size = self.input_size
+
+        # Hidden layers
+        for i in range(self.num_layers):
+            layer_size = self.hidden_sizes[i]
+            self.layers.append(NeuralLayer(current_input_size, layer_size,
+                                           self.activation_str, self.weight_init))
+            current_input_size = layer_size
+
+        # Output layer with linear activation
+        self.layers.append(NeuralLayer(current_input_size, self.output_size,
+                                       'linear', self.weight_init))
+
     def forward(self, X):
         """
         Forward propagation through all layers.
-        Returns logits (no softmax applied)
-        X is shape (b, D_in) and output is shape (b, D_out).
-        b is batch size, D_in is input dimension, D_out is output dimension.
+        Returns logits (no softmax applied).
 
         Args:
             X: Input data of shape (batch_size, input_size)
@@ -92,64 +98,79 @@ class NeuralNetwork:
             logits: Raw output (no softmax) of shape (batch_size, output_size)
         """
         self.layer_outputs = [X.copy()]
-        activation = X
+        A = X
 
-        # Forward through all layers except the last
+        # Forward through hidden layers
         for layer in self.layers[:-1]:
-            activation = layer.forward(activation)
-            self.layer_outputs.append(activation.copy())
+            A = layer.forward(A)
+            self.layer_outputs.append(A.copy())
 
-        # Last layer: compute pre-activation but return logits (no softmax)
-        last_layer = self.layers[-1]
-        last_layer.X = activation
-        last_layer.Z = np.dot(activation, last_layer.W) + last_layer.b
-        logits = last_layer.Z  # Return raw logits
-
-        # Still compute activated output for internal use if needed
-        last_layer.A = softmax(last_layer.Z)
-
+        # Output layer (linear activation → returns logits directly)
+        logits = self.layers[-1].forward(A)
         self.layer_outputs.append(logits.copy())
 
         return logits
 
-    def backward(self, dA_or_y, logits=None):
+    def backward(self, y_true, logits):
         """
         Backward propagation through all layers.
+        Computes softmax internally and derives gradient from loss type.
+
         Args:
-            dA_or_y: Upstream gradient (batch_size, num_classes) if logits is None,
-                     or y_onehot labels if logits is provided.
-            logits: If provided, compute loss derivative from (dA_or_y, logits).
+            y_true: True labels (one-hot or integer), shape (batch_size, num_classes) or (batch_size,)
+            logits: Raw logits from forward pass, shape (batch_size, num_classes)
+
         Returns:
             grad_W: List of weight gradients for each layer
             grad_b: List of bias gradients for each layer
         """
-        if logits is not None:
-            dA = self.loss_derivative(dA_or_y, logits)
+        grads = []
+        m = y_true.shape[0]
+
+        # Compute softmax probabilities
+        if np.allclose(np.sum(logits, axis=1), 1.0):
+            probabilities = logits
         else:
-            dA = dA_or_y
-        # Backprop through layers in reverse
-        grad_W_list = []
-        grad_b_list = []
+            exp_logits = np.exp(logits - np.max(logits, axis=1, keepdims=True))
+            probabilities = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
 
-        # Start with output layer
-        dX = self.layers[-1].backward(dA, apply_activation_derivative=False)
-        grad_W_list.append(self.layers[-1].grad_W)
-        grad_b_list.append(self.layers[-1].grad_b)
+        # One-hot encoding if needed
+        if y_true.ndim == 1 or (y_true.ndim == 2 and y_true.shape[1] == 1):
+            y_one_hot = np.zeros_like(probabilities)
+            y_one_hot[np.arange(m), y_true.flatten().astype(int)] = 1
+            y_true_used = y_one_hot
+        else:
+            y_true_used = y_true
 
-        # Backprop through hidden layers
+        # Compute initial gradient based on loss type
+        if self.loss_name == 'cross_entropy':
+            dA_to_pass = (probabilities - y_true_used) / m
+        elif self.loss_name in ('mse', 'mean_squared_error'):
+            # Full MSE derivative through softmax Jacobian
+            dA = 2 * (probabilities - y_true_used) / m
+            dA_to_pass = probabilities * (dA - np.sum(dA * probabilities, axis=1, keepdims=True))
+
+        # Output layer backward (linear activation, derivative = 1)
+        original_deriv = self.layers[-1].activation_derivative
+        self.layers[-1].activation_derivative = lambda Z: 1.0
+        dX, dW, db = self.layers[-1].backward(dA_to_pass)
+        grads.append((dW, db))
+        self.layers[-1].activation_derivative = original_deriv
+
+        # Propagate through hidden layers
         for layer in reversed(self.layers[:-1]):
-            dX = layer.backward(dX, apply_activation_derivative=True)
-            grad_W_list.append(layer.grad_W)
-            grad_b_list.append(layer.grad_b)
+            dX, dW, db = layer.backward(dX)
+            grads.append((dW, db))
 
-        # Reverse the lists so that index 0 = last layer
-        grad_W_list.reverse()
-        grad_b_list.reverse()
+        # Reverse to get input-to-output order
+        grads = grads[::-1]
 
-        # Store in object arrays
-        self.grad_W = np.empty(len(grad_W_list), dtype=object)
-        self.grad_b = np.empty(len(grad_b_list), dtype=object)
-        for i, (gw, gb) in enumerate(zip(grad_W_list, grad_b_list)):
+        # Store gradients in object arrays (for optimizer compatibility)
+        grad_w = [g[0] for g in grads]
+        grad_b = [g[1] for g in grads]
+        self.grad_W = np.empty(len(grad_w), dtype=object)
+        self.grad_b = np.empty(len(grad_b), dtype=object)
+        for i, (gw, gb) in enumerate(zip(grad_w, grad_b)):
             self.grad_W[i] = gw
             self.grad_b[i] = gb
 
@@ -173,8 +194,7 @@ class NeuralNetwork:
             for X_batch, y_batch in create_batches(X_train_shuffled, y_train_shuffled, batch_size):
                 logits = self.forward(X_batch)
                 loss = self.loss_fn(y_batch, logits)
-                grad = self.loss_derivative(y_batch, logits)
-                self.backward(grad)
+                self.backward(y_batch, logits)
                 self.optimizer.update(self.layers, self.grad_W, self.grad_b)
                 epoch_grad_norms.append(np.linalg.norm(self.grad_W[0]))
 
@@ -229,8 +249,7 @@ class NeuralNetwork:
         """
         logits = self.forward(X_batch)
         loss = self.loss_fn(y_batch, logits)
-        grad = self.loss_derivative(y_batch, logits)
-        self.backward(grad)
+        self.backward(y_batch, logits)
         self.optimizer.update(self.layers, self.grad_W, self.grad_b)
 
     def evaluate(self, X, y):
@@ -244,15 +263,22 @@ class NeuralNetwork:
     def get_weights(self):
         d = {}
         for i, layer in enumerate(self.layers):
-            d[f"W{i}"] = layer.W.copy()
-            d[f"b{i}"] = layer.b.copy()
+            d[f"W{i+1}"] = layer.W.copy()
+            d[f"b{i+1}"] = layer.b.copy()
         return d
 
-    def set_weights(self, weight_dict):
-        for i, layer in enumerate(self.layers):
-            w_key = f"W{i}"
-            b_key = f"b{i}"
-            if w_key in weight_dict:
-                layer.W = weight_dict[w_key].copy()
-            if b_key in weight_dict:
-                layer.b = weight_dict[b_key].copy()
+    def set_weights(self, weights_dict):
+        w_keys = sorted([k for k in weights_dict.keys() if k.startswith('W')])
+        b_keys = sorted([k for k in weights_dict.keys() if k.startswith('b')])
+        # Rebuild layers if architecture doesn't match
+        if len(w_keys) != len(self.layers) or self.layers[-1].W.shape[1] != weights_dict[w_keys[-1]].shape[1]:
+            self.layers = []
+            for i in range(len(w_keys)):
+                in_size = weights_dict[w_keys[i]].shape[0]
+                out_size = weights_dict[w_keys[i]].shape[1]
+                act = 'linear' if i == len(w_keys) - 1 else self.activation_str
+                self.layers.append(NeuralLayer(in_size, out_size, act, 'random'))
+        # Load the weights
+        for i, (wk, bk) in enumerate(zip(w_keys, b_keys)):
+            self.layers[i].W = weights_dict[wk].copy()
+            self.layers[i].b = weights_dict[bk].copy()

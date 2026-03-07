@@ -64,3 +64,21 @@ Rank 3: train-test gap 0.0075 (train=0.9670, test=0.9595)
     "learning_rate": 0.01
 }
 
+Rank 4: train-test gap -0.0040 (train=0.9158, test=0.9198)
+{
+    "loss": "cross_entropy",
+    "epochs": 2,
+    "dataset": "mnist",
+    "optimizer": "sgd",
+    "activation": "relu",
+    "batch_size": 32,
+    "num_layers": 2,
+    "hidden_size": [
+        64,
+        64
+    ],
+    "weight_init": "xavier",
+    "weight_decay": 0.0,
+    "learning_rate": 0.01
+}
+

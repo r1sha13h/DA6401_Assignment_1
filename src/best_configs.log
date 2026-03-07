@@ -64,7 +64,25 @@ Rank 3: val_acc 0.9585
     "learning_rate": 0.01
 }
 
-Rank 4: val_acc 0.8883
+Rank 4: val_acc 0.9160
+{
+    "loss": "cross_entropy",
+    "epochs": 2,
+    "dataset": "mnist",
+    "optimizer": "sgd",
+    "activation": "relu",
+    "batch_size": 32,
+    "num_layers": 2,
+    "hidden_size": [
+        64,
+        64
+    ],
+    "weight_init": "xavier",
+    "weight_decay": 0.0,
+    "learning_rate": 0.01
+}
+
+Rank 5: val_acc 0.8883
 {
     "loss": "cross_entropy",
     "epochs": 2,
@@ -72,23 +90,6 @@ Rank 4: val_acc 0.8883
     "optimizer": "sgd",
     "activation": "relu",
     "batch_size": 64,
-    "num_layers": 1,
-    "hidden_size": [
-        32
-    ],
-    "weight_init": "xavier",
-    "weight_decay": 0.0,
-    "learning_rate": 0.01
-}
-
-Rank 5: val_acc 0.8160
-{
-    "loss": "cross_entropy",
-    "epochs": 1,
-    "dataset": "mnist",
-    "optimizer": "sgd",
-    "activation": "relu",
-    "batch_size": 128,
     "num_layers": 1,
     "hidden_size": [
         32

@@ -27,22 +27,27 @@ class NeuralLayer:
         # Initialize weights
         if weight_init == 'xavier':
             # Xavier/Glorot initialization
-            limit = np.sqrt(6 / (input_size + output_size))
+            limit = np.sqrt(2.0 / (input_size + output_size))
             self.W = np.random.uniform(-limit, limit, (input_size, output_size))
+        elif weight_init == 'he':
+            self.W = np.random.randn(input_size, output_size) * np.sqrt(2.0 / input_size)
         elif weight_init == 'random':
             self.W = np.random.randn(input_size, output_size) * 0.01
         elif weight_init == 'zeros':
             self.W = np.zeros((input_size, output_size))
         else:
-            raise ValueError(f"Unknown weight initialization: {weight_init}")
+            # Fallback to small random
+            self.W = np.random.randn(input_size, output_size) * 0.01
 
         # Initialize biases to zeros
         self.b = np.zeros((1, output_size))
 
         # Get activation functions
         self.activation = get_activation(activation)
-        if activation != 'softmax':
+        if activation not in ('softmax',):
             self.activation_derivative = get_activation_derivative(activation)
+        else:
+            self.activation_derivative = None
 
         # Cache for backward pass
         self.X = None
@@ -68,31 +73,29 @@ class NeuralLayer:
         self.A = self.activation(self.Z)      # Apply activation
         return self.A
 
-    def backward(self, dA, apply_activation_derivative=True):
+    def backward(self, dA):
         """
         Backward pass through the layer.
 
         Args:
             dA: Gradient of loss with respect to layer output
-            apply_activation_derivative: Whether to apply activation derivative
 
         Returns:
-            dX: Gradient with respect to input
+            (dX, dW, db): Gradients with respect to input, weights, biases
         """
-        batch_size = self.X.shape[0]
-
-        if apply_activation_derivative and self.activation_name != 'softmax':
-            # Apply activation derivative
+        # Apply activation derivative
+        if self.activation_derivative is not None:
             dZ = dA * self.activation_derivative(self.Z)
         else:
-            # For softmax with cross-entropy, gradient is already computed
             dZ = dA
 
         # Compute gradients
-        self.grad_W = np.dot(self.X.T, dZ)
-        self.grad_b = np.sum(dZ, axis=0, keepdims=True)
+        dW = np.dot(self.X.T, dZ)
+        db = np.sum(dZ, axis=0, keepdims=True)
+        self.grad_W = dW
+        self.grad_b = db
 
         # Gradient with respect to input
         dX = np.dot(dZ, self.W.T)
 
-        return dX
+        return dX, dW, db

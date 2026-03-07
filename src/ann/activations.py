@@ -34,8 +34,8 @@ def tanh_derivative(x):
 def softmax(x):
     """Softmax activation function with numerical stability"""
     # Subtract max for numerical stability
-    exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
-    return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+    exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
+    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
 
 def get_activation(name):
     """Get activation function by name"""
@@ -43,7 +43,8 @@ def get_activation(name):
         'relu': relu,
         'sigmoid': sigmoid,
         'tanh': tanh,
-        'softmax': softmax
+        'softmax': softmax,
+        'linear': lambda x: x
     }
     if name not in activations:
         raise ValueError(f"Unknown activation: {name}")
@@ -54,7 +55,8 @@ def get_activation_derivative(name):
     derivatives = {
         'relu': relu_derivative,
         'sigmoid': sigmoid_derivative,
-        'tanh': tanh_derivative
+        'tanh': tanh_derivative,
+        'linear': lambda x: np.ones_like(x)
     }
     if name not in derivatives:
         raise ValueError(f"Unknown activation derivative: {name}")
