@@ -89,8 +89,8 @@ class NeuralLayer:
             dZ = dA
 
         # Compute gradients
-        self.grad_W = np.dot(self.X.T, dZ) / batch_size
-        self.grad_b = np.sum(dZ, axis=0, keepdims=True) / batch_size
+        self.grad_W = np.dot(self.X.T, dZ)
+        self.grad_b = np.sum(dZ, axis=0, keepdims=True)
 
         # Gradient with respect to input
         dX = np.dot(dZ, self.W.T)

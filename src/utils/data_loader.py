@@ -16,9 +16,9 @@ def load_data(dataset_name='mnist'):
         (X_train, y_train), (X_test, y_test): Preprocessed data
     """
     if dataset_name == 'mnist':
-        data = fetch_openml('mnist_784', version=1, as_frame=False, parser='auto')
+        data = fetch_openml('mnist_784', version=1, as_frame=False, parser='liac-arff')
     elif dataset_name == 'fashion_mnist':
-        data = fetch_openml('Fashion-MNIST', version=1, as_frame=False, parser='auto')
+        data = fetch_openml('Fashion-MNIST', version=1, as_frame=False, parser='liac-arff')
     else:
         raise ValueError(f"Unknown dataset: {dataset_name}")
 

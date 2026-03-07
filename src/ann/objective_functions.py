@@ -44,8 +44,8 @@ def cross_entropy_derivative(y_true, y_pred_logits):
     batch_size = y_true.shape[0]
     y_pred_probs = softmax(y_pred_logits)
 
-    # Simplified gradient for softmax + cross-entropy
-    gradient = (y_pred_probs - y_true)
+    # Simplified gradient for softmax + cross-entropy (averaged over batch)
+    gradient = (y_pred_probs - y_true) / batch_size
 
     return gradient
 
@@ -75,7 +75,8 @@ def mean_squared_error_derivative(y_true, y_pred):
     Returns:
         gradient: Gradient of shape (batch_size, num_classes)
     """
-    return (y_pred - y_true)
+    batch_size = y_true.shape[0]
+    return (y_pred - y_true) / batch_size
 
 def get_loss_function(name):
     """Get loss function by name"""
