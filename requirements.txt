@@ -1,6 +1,11 @@
 # Core dependencies
-numpy>=1.21.0
-matplotlib>=3.4.0
+numpy>=1.19.0
+tensorflow>=2.0.0
+scikit-learn>=0.24.0
+
+# Visualization (optional)
+matplotlib>=3.3.0
+seaborn>=0.11.0
 
 # For data loading
 keras>=2.7.0
@@ -10,3 +15,7 @@ wandb>=0.12.0
 
 # For confusion matrix and metrics calculation
 scikit-learn>=0.24.2
+
+# Jupyter notebook support (optional)
+jupyter>=1.0.0
+ipykernel>=6.0.0

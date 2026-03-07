@@ -1,0 +1,18 @@
+{
+    "gap": 0.0014962962962962734,
+    "train_acc": 0.10429629629629628,
+    "test_acc": 0.1028,
+    "config": {
+        "loss": "cross_entropy",
+        "epochs": 20,
+        "dataset": "mnist",
+        "optimizer": "momentum",
+        "activation": "sigmoid",
+        "batch_size": 16,
+        "num_layers": 6,
+        "hidden_size": 81,
+        "weight_init": "random",
+        "weight_decay": 0.005839273783580801,
+        "learning_rate": 0.048207107936841805
+    }
+}

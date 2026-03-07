@@ -1,0 +1,68 @@
+[
+        {
+        "val_acc": 0.9688,
+        "config": {
+            "loss": "cross_entropy",
+            "epochs": 25,
+            "dataset": "mnist",
+            "optimizer": "sgd",
+            "activation": "relu",
+            "batch_size": 64,
+            "num_layers": 6,
+            "hidden_size": [
+                128,
+                128,
+                128,
+                128,
+                128,
+                128
+            ],
+            "weight_init": "xavier",
+            "weight_decay": 0.0,
+            "learning_rate": 0.01
+        }
+    },
+    {
+        "val_acc": 0.109,
+        "config": {
+            "loss": "mse",
+            "epochs": 25,
+            "dataset": "mnist",
+            "optimizer": "nag",
+            "activation": "sigmoid",
+            "batch_size": 64,
+            "num_layers": 3,
+            "hidden_size": [
+                117,
+                117,
+                117
+            ],
+            "weight_init": "random",
+            "weight_decay": 0.07216614497730967,
+            "learning_rate": 0.003273421932518984
+        }
+    },
+    {
+        "val_acc": 0.109,
+        "config": {
+            "loss": "cross_entropy",
+            "epochs": 20,
+            "dataset": "mnist",
+            "optimizer": "momentum",
+            "activation": "sigmoid",
+            "batch_size": 16,
+            "num_layers": 6,
+            "hidden_size": [
+                81,
+                81,
+                81,
+                81,
+                81,
+                81
+            ],
+            "weight_init": "random",
+            "weight_decay": 0.005839273783580801,
+            "learning_rate": 0.048207107936841805
+        }
+    }
+]
