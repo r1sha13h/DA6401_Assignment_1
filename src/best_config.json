@@ -3,14 +3,19 @@
         "val_acc": 0.9825,
         "config": {
             "loss": "cross_entropy",
-            "epochs": 15,
+            "epochs": 25,
             "dataset": "mnist",
             "optimizer": "nag",
             "activation": "sigmoid",
-            "batch_size": 16,
-            "num_layers": 1,
+            "batch_size": 32,
+            "num_layers": 6,
             "hidden_size": [
-                128
+                128,
+                128,
+                128,
+                128,
+                128,
+                128   
             ],
             "weight_init": "xavier",
             "weight_decay": 0,

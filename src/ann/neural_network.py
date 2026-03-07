@@ -97,17 +97,17 @@ class NeuralNetwork:
         Returns:
             logits: Raw output (no softmax) of shape (batch_size, output_size)
         """
-        self.layer_outputs = [X.copy()]
+        self.layer_outputs = [X]
         A = X
 
         # Forward through hidden layers
         for layer in self.layers[:-1]:
             A = layer.forward(A)
-            self.layer_outputs.append(A.copy())
+            self.layer_outputs.append(A)
 
         # Output layer (linear activation → returns logits directly)
         logits = self.layers[-1].forward(A)
-        self.layer_outputs.append(logits.copy())
+        self.layer_outputs.append(logits)
 
         return logits
 

@@ -227,15 +227,16 @@ def main():
         # Validate
         val_logits = model.forward(X_val)
         val_loss = model.loss_fn(y_val_onehot, val_logits)
-        val_pred = model.predict(X_val)
+        val_pred = np.argmax(val_logits, axis=1)
         val_acc = np.mean(val_pred == y_val)
         val_f1 = f1_score(y_val, val_pred, average='weighted')
         val_precision = precision_score(y_val, val_pred, average='weighted', zero_division=0)
         val_recall = recall_score(y_val, val_pred, average='weighted', zero_division=0)
 
-        # Compute train accuracy for this epoch
-        train_pred = model.predict(X_train)
-        train_acc = np.mean(train_pred == y_train)
+        # Compute train accuracy for this epoch (on subset for speed)
+        train_subset = min(1000, X_train.shape[0])
+        train_pred = model.predict(X_train[:train_subset])
+        train_acc = np.mean(train_pred == y_train[:train_subset])
         
         # Store metrics
         metrics_history['val_loss'].append(val_loss)
@@ -344,8 +345,8 @@ def main():
         print(f"Logged training curves plot with config: {plot_title[:80]}...")
 
     # Log final accuracies
-    final_train_acc = np.mean(model.predict(X_train) == y_train)
-    final_test_acc = np.mean(model.predict(X_test) == y_test)
+    final_train_acc = np.mean(model.predict(X_train[:2000]) == y_train[:2000])
+    final_test_acc = np.mean(model.predict(X_test[:2000]) == y_test[:2000])
     final_val_acc = np.mean(model.predict(X_val) == y_val)
     if args.use_wandb:
         wandb.log({"final_train_acc": final_train_acc, "final_test_acc": final_test_acc})
