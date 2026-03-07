@@ -112,21 +112,15 @@ class NeuralNetwork:
 
         return logits
 
-    def backward(self, dA_or_y, logits=None):
+    def backward(self, dA):
         """
         Backward propagation through all layers.
         Args:
-            dA_or_y: Upstream gradient (batch_size, num_classes) if logits is None,
-                     or y_onehot labels if logits is provided.
-            logits: If provided, compute loss derivative from (dA_or_y, logits).
+            dA: Upstream gradient from loss function (batch_size, num_classes)
         Returns:
             grad_W: List of weight gradients for each layer
             grad_b: List of bias gradients for each layer
         """
-        if logits is not None:
-            dA = self.loss_derivative(dA_or_y, logits)
-        else:
-            dA = dA_or_y
         # Backprop through layers in reverse
         grad_W_list = []
         grad_b_list = []

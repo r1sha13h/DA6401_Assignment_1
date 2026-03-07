@@ -48,8 +48,8 @@ def parse_arguments():
     # Network architecture
     parser.add_argument('-nhl', '--num_layers', type=int, default=2,
                         help='Number of hidden layers')
-    parser.add_argument('-sz', '--hidden_size', type=int, nargs='+', default=[128],
-                        help='Hidden layer sizes (one per layer, or single value replicated for all layers)')
+    parser.add_argument('-sz', '--hidden_size', type=int, default=128,
+                        help='Hidden layer size (single integer, replicated for all layers)')
     parser.add_argument('-a', '--activation', type=str, default='relu',
                         choices=['relu', 'sigmoid', 'tanh'],
                         help='Activation function for hidden layers')
@@ -73,13 +73,8 @@ def parse_arguments():
 
     args = parser.parse_args()
 
-    # Ensure hidden_size matches num_layers
-    if len(args.hidden_size) == 1:
-        args.hidden_size = args.hidden_size * args.num_layers
-    elif len(args.hidden_size) < args.num_layers:
-        args.hidden_size.extend([args.hidden_size[-1]] * (args.num_layers - len(args.hidden_size)))
-    elif len(args.hidden_size) > args.num_layers:
-        args.hidden_size = args.hidden_size[:args.num_layers]
+    # Replicate hidden_size for all layers
+    args.hidden_size = [args.hidden_size] * args.num_layers
 
     return args
 
