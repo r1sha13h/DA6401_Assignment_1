@@ -3,7 +3,7 @@ Data Loading and Preprocessing
 Handles MNIST and Fashion-MNIST datasets
 """
 import numpy as np
-from tensorflow import keras
+from sklearn.datasets import fetch_openml
 
 def load_data(dataset_name='mnist'):
     """
@@ -16,19 +16,20 @@ def load_data(dataset_name='mnist'):
         (X_train, y_train), (X_test, y_test): Preprocessed data
     """
     if dataset_name == 'mnist':
-        (X_train, y_train), (X_test, y_test) = keras.datasets.mnist.load_data()
+        data = fetch_openml('mnist_784', version=1, as_frame=False, parser='auto')
     elif dataset_name == 'fashion_mnist':
-        (X_train, y_train), (X_test, y_test) = keras.datasets.fashion_mnist.load_data()
+        data = fetch_openml('Fashion-MNIST', version=1, as_frame=False, parser='auto')
     else:
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
-    # Flatten images: 28x28 -> 784
-    X_train = X_train.reshape(X_train.shape[0], -1)
-    X_test = X_test.reshape(X_test.shape[0], -1)
+    X, y = data.data, data.target.astype(int)
 
     # Normalize to [0, 1]
-    X_train = X_train.astype('float32') / 255.0
-    X_test = X_test.astype('float32') / 255.0
+    X = X.astype('float32') / 255.0
+
+    # Split into train (60000) and test (10000) — standard MNIST split
+    X_train, X_test = X[:60000], X[60000:]
+    y_train, y_test = y[:60000], y[60000:]
 
     return (X_train, y_train), (X_test, y_test)
 

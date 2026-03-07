@@ -359,10 +359,11 @@ def main():
         "weight_decay": args.weight_decay,
         "learning_rate": args.learning_rate
     }
-    update_best_configs_log(config_dict, final_val_acc, log_path='src/best_configs.log')
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    update_best_configs_log(config_dict, final_val_acc, log_path=os.path.join(script_dir, 'best_configs.log'))
     
     # Update overfit_configs.log (only if train_acc >= 0.9, in src folder)
-    update_overfit_configs_log(config_dict, final_train_acc, final_test_acc, log_path='src/overfit_configs.log')
+    update_overfit_configs_log(config_dict, final_train_acc, final_test_acc, log_path=os.path.join(script_dir, 'overfit_configs.log'))
 
     # Save config
     if args.save_model:

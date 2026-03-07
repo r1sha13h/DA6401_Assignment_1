@@ -64,35 +64,37 @@ Rank 3: val_acc 0.9585
     "learning_rate": 0.01
 }
 
-Rank 4: val_acc 0.1425
+Rank 4: val_acc 0.8883
 {
     "loss": "cross_entropy",
-    "epochs": 15,
+    "epochs": 2,
     "dataset": "mnist",
-    "optimizer": "rmsprop",
-    "activation": "tanh",
+    "optimizer": "sgd",
+    "activation": "relu",
     "batch_size": 64,
-    "num_layers": 4,
-    "hidden_size": 120,
-    "weight_init": "random",
-    "weight_decay": 0.024838625714794685,
-    "learning_rate": 0.0558291994430117,
-    "wandb_project": "exp21"
+    "num_layers": 1,
+    "hidden_size": [
+        32
+    ],
+    "weight_init": "xavier",
+    "weight_decay": 0.0,
+    "learning_rate": 0.01
 }
 
-Rank 5: val_acc 0.1090
+Rank 5: val_acc 0.8160
 {
-    "loss": "mse",
-    "epochs": 25,
+    "loss": "cross_entropy",
+    "epochs": 1,
     "dataset": "mnist",
-    "optimizer": "nag",
-    "activation": "sigmoid",
-    "batch_size": 64,
-    "num_layers": 3,
-    "hidden_size": 117,
-    "weight_init": "random",
-    "weight_decay": 0.07216614497730967,
-    "learning_rate": 0.003273421932518984,
-    "wandb_project": "exp21"
+    "optimizer": "sgd",
+    "activation": "relu",
+    "batch_size": 128,
+    "num_layers": 1,
+    "hidden_size": [
+        32
+    ],
+    "weight_init": "xavier",
+    "weight_decay": 0.0,
+    "learning_rate": 0.01
 }
 

@@ -63,6 +63,11 @@ def parse_arguments():
     if args.config:
         with open(args.config, 'r') as f:
             config = json.load(f)
+        # Handle list format (pick best config) or flat dict format
+        if isinstance(config, list):
+            config = config[0].get('config', config[0])
+        elif 'config' in config:
+            config = config['config']
         # Override args with config values
         for key, value in config.items():
             if hasattr(args, key):
