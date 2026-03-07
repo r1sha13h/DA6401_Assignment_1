@@ -24,3 +24,9 @@ wandb/
 
 # Project specific
 src/.DS_Store
+
+# Backup files
+*.bak
+
+# Task files
+wandb_tasks.md

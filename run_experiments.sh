@@ -104,7 +104,7 @@ command:
 EOFF
 
 # Update wandb_project in sweep config
-sed -i.bak '/wandb_project:/{n;s/    value: ".*"/    value: "'"$PROJECT_NAME"'"/;}' sweep_config.yaml
+sed -i '' '/wandb_project:/{n;s/    value: ".*"/    value: "'"$PROJECT_NAME"'"/;}' sweep_config.yaml
 
 # Initialize sweep
 SWEEP_ID=$(python3 -m wandb sweep sweep_config.yaml --project "$PROJECT_NAME" 2>&1 | grep "wandb agent" | sed 's/.*wandb agent //' | awk '{print $1}')
