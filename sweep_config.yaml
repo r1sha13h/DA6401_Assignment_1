@@ -28,7 +28,7 @@ parameters:
   weight_init:
     values: [random, xavier]
   wandb_project:
-    value: "exp25"
+    value: "mlp-100-sweeps"
 command:
   - ${env}
   - python3

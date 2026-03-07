@@ -1,18 +1,18 @@
 {
-    "gap": 0.0014962962962962734,
-    "train_acc": 0.10429629629629628,
-    "test_acc": 0.1028,
+    "gap": 0.022299999999999986,
+    "train_acc": 0.999,
+    "test_acc": 0.9767,
     "config": {
         "loss": "cross_entropy",
         "epochs": 20,
         "dataset": "mnist",
-        "optimizer": "momentum",
-        "activation": "sigmoid",
+        "optimizer": "rmsprop",
+        "activation": "tanh",
         "batch_size": 16,
-        "num_layers": 6,
-        "hidden_size": 81,
+        "num_layers": 2,
+        "hidden_size": 128,
         "weight_init": "random",
-        "weight_decay": 0.005839273783580801,
-        "learning_rate": 0.048207107936841805
+        "weight_decay": 0,
+        "learning_rate": 0.001
     }
 }

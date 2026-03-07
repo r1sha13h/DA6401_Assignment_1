@@ -1,5 +1,15 @@
 # Multi-Layer Perceptron from Scratch using NumPy
 
+**Name:** Rishabh Mishra
+
+**Roll No:** DA25M025
+
+**WandB Report:** [https://wandb.ai/rishabh-mishra-cer16-iitmaana/mlp-100-sweeps/reports/Assignment-1--VmlldzoxNjEzNTIyNg](https://wandb.ai/rishabh-mishra-cer16-iitmaana/mlp-100-sweeps/reports/Assignment-1--VmlldzoxNjEzNTIyNg)
+
+**GitHub Repository:** [https://github.com/r1sha13h/DA6401_Assignment_1](https://github.com/r1sha13h/DA6401_Assignment_1)
+
+---
+
 A complete implementation of a configurable Multi-Layer Perceptron (MLP) for MNIST and Fashion-MNIST classification, built entirely with NumPy. This project demonstrates fundamental neural network concepts including forward/backward propagation, various optimization algorithms, and comprehensive experiment tracking.
 
 ## Table of Contents
@@ -341,6 +351,28 @@ model.set_weights(weights)
 
 ## Experiments and Results
 
+### Hyperparameter Sweep Results (mlp-100-sweeps)
+
+A comprehensive hyperparameter sweep was conducted with 100 runs using Bayesian optimization. The sweep explored:
+- **Optimizers**: SGD, Momentum, NAG, RMSProp
+- **Learning Rates**: 0.0001 to 0.1
+- **Activations**: ReLU, Sigmoid, Tanh
+- **Network Depths**: 1-3 hidden layers
+- **Hidden Sizes**: 32, 64, 128, 256 neurons
+- **Batch Sizes**: 16, 32, 64
+- **Loss Functions**: Cross-Entropy, MSE
+- **Weight Initializations**: Xavier, He, Random
+
+**Best Configuration Achieved:**
+- **Validation Accuracy**: 98.25%
+- **Optimizer**: NAG
+- **Learning Rate**: 0.1
+- **Activation**: Sigmoid
+- **Architecture**: 1 hidden layer with 128 neurons
+- **Batch Size**: 16
+- **Loss**: Cross-Entropy
+- **Initialization**: Xavier
+
 ### Expected Performance
 
 | Dataset | Accuracy | F1 Score | Training Time (10 epochs) |
@@ -386,7 +418,7 @@ python src/train.py -d fashion_mnist -e 20 -b 128 -o rmsprop -lr 0.001 \
 ```bash
 wandb login
 python src/train.py -d mnist -e 20 -b 64 -o rmsprop -lr 0.001 \
-    --use_wandb --wandb_project my-mlp-experiments
+    --use_wandb --wandb_project mlp-100-sweeps
 ```
 
 **Tracked Metrics:**
@@ -395,6 +427,10 @@ python src/train.py -d mnist -e 20 -b 64 -o rmsprop -lr 0.001 \
 - Gradient Norms per Layer
 - Weight Statistics
 - Dead Neuron Count
+
+**View Results:**
+- Project Dashboard: [mlp-100-sweeps](https://wandb.ai/rishabh-mishra-cer16-iitmaana/mlp-100-sweeps)
+- Full Report: [Assignment 1 Report](https://wandb.ai/rishabh-mishra-cer16-iitmaana/mlp-100-sweeps/reports/Assignment-1--VmlldzoxNjEzNTIyNg)
 
 ---
 

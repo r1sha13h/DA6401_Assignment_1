@@ -316,7 +316,7 @@ def main():
                 model_args = type('Args', (), {
                     'num_layers': net['num_layers'],
                     'hidden_size': net['hidden_size'],
-                    'activation': 'relu',
+                    'activation': 'sigmoid',
                     'weight_init': 'xavier',
                     'loss': loss,
                     'optimizer': 'rmsprop',
@@ -325,7 +325,7 @@ def main():
                 })()
 
                 model = NeuralNetwork(model_args)
-                model.train(X_train, y_train_onehot, epochs=25, batch_size=8, val_X=X_val, val_y=y_val_onehot)
+                model.train(X_train, y_train_onehot, epochs=25, batch_size=32, val_X=X_val, val_y=y_val_onehot)
 
                 # Compute final test accuracy
                 test_pred = model.predict(X_test)
@@ -556,30 +556,31 @@ def main():
             test_pred = model.predict(X_test)
             test_acc = np.mean(test_pred == y_test)
 
-            # Plot train_acc, val_loss, val_acc per epoch
+            # Plot train_acc, val_acc, val_loss per epoch in a single plot
             epochs_range = list(range(1, n_epochs + 1))
-            fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+            fig, ax1 = plt.subplots(figsize=(12, 7))
 
-            axes[0].plot(epochs_range, model.train_acc_history, 'r-o', linewidth=2, markersize=3)
-            axes[0].set_xlabel('Epoch')
-            axes[0].set_ylabel('Training Accuracy')
-            axes[0].set_title('Train Acc vs Epoch')
-            axes[0].grid(True, alpha=0.3)
+            # Left y-axis: accuracies
+            ax1.plot(epochs_range, model.train_acc_history, 'r-o', linewidth=2, markersize=3, label='Train Acc')
+            ax1.plot(epochs_range, model.val_acc_history, 'g-o', linewidth=2, markersize=3, label='Val Acc')
+            ax1.set_xlabel('Epoch')
+            ax1.set_ylabel('Accuracy')
+            ax1.grid(True, alpha=0.3)
 
-            axes[1].plot(epochs_range, model.val_loss_history, 'b-o', linewidth=2, markersize=3)
-            axes[1].set_xlabel('Epoch')
-            axes[1].set_ylabel('Validation Loss')
-            axes[1].set_title('Val Loss vs Epoch')
-            axes[1].grid(True, alpha=0.3)
+            # Right y-axis: val loss
+            ax2 = ax1.twinx()
+            ax2.plot(epochs_range, model.val_loss_history, 'b-s', linewidth=2, markersize=3, label='Val Loss')
+            ax2.set_ylabel('Validation Loss')
 
-            axes[2].plot(epochs_range, model.val_acc_history, 'g-o', linewidth=2, markersize=3)
-            axes[2].set_xlabel('Epoch')
-            axes[2].set_ylabel('Validation Accuracy')
-            axes[2].set_title('Val Acc vs Epoch')
-            axes[2].grid(True, alpha=0.3)
+            # Combined legend
+            lines1, labels1 = ax1.get_legend_handles_labels()
+            lines2, labels2 = ax2.get_legend_handles_labels()
+            ax1.legend(lines1 + lines2, labels1 + labels2, loc='center right')
 
-            fig.suptitle(f'{cfg_name} | Test Acc: {test_acc:.4f}', fontsize=10, y=1.02)
-            plt.tight_layout()
+            # Visible title with full config details (wrapped)
+            title_text = (f"{cfg_name}\nTest Acc: {test_acc:.4f}")
+            fig.suptitle(title_text, fontsize=11, fontweight='bold', y=0.98)
+            plt.tight_layout(rect=[0, 0, 1, 0.92])
             if args.use_wandb:
                 wandb.log({f"config{idx+1}_training_curves": wandb.Image(fig)})
             plt.close(fig)
@@ -902,8 +903,8 @@ def main():
                 axes[0].plot(epochs, history['train_acc'], color=c, alpha=0.6, linewidth=1, label=label)
             if 'val_loss' in history.columns:
                 axes[2].plot(epochs, history['val_loss'], color=c, alpha=0.6, linewidth=1, label=label)
-            # test_acc is a single final value — show as horizontal line
-            axes[1].axhline(y=rd['test_acc'], color=c, alpha=0.6, linewidth=1, linestyle='--', label=label)
+            # test_acc as a flat line across epochs
+            axes[1].plot(epochs, [rd['test_acc']] * len(epochs), color=c, alpha=0.6, linewidth=1, linestyle='--', label=label)
 
         axes[0].set_xlabel('Epoch'); axes[0].set_ylabel('Train Accuracy')
         axes[0].set_title('Train Acc (all runs)'); axes[0].grid(True, alpha=0.3)
@@ -935,18 +936,18 @@ def main():
             fig, axes = plt.subplots(1, 3, figsize=(18, 5))
 
             if 'train_acc' in history.columns:
-                axes[0].plot(epochs, history['train_acc'], 'r-o', linewidth=2, markersize=3)
+                axes[0].plot(epochs, history['train_acc'], 'r-', linewidth=2)
             axes[0].set_xlabel('Epoch'); axes[0].set_ylabel('Train Accuracy')
             axes[0].set_title('Train Acc vs Epoch'); axes[0].grid(True, alpha=0.3)
 
-            axes[1].axhline(y=rd['test_acc'], color='g', linestyle='--', linewidth=2, label=f'Test Acc: {rd["test_acc"]:.4f}')
+            axes[1].plot(epochs, [rd['test_acc']] * len(epochs), 'g--', linewidth=2, label=f'Test Acc: {rd["test_acc"]:.4f}')
             if 'val_acc' in history.columns:
-                axes[1].plot(epochs, history['val_acc'], 'g-o', linewidth=2, markersize=3, label='Val Acc')
+                axes[1].plot(epochs, history['val_acc'], 'g-', linewidth=2, label='Val Acc')
             axes[1].set_xlabel('Epoch'); axes[1].set_ylabel('Accuracy')
             axes[1].set_title('Test/Val Acc vs Epoch'); axes[1].legend(); axes[1].grid(True, alpha=0.3)
 
             if 'val_loss' in history.columns:
-                axes[2].plot(epochs, history['val_loss'], 'b-o', linewidth=2, markersize=3)
+                axes[2].plot(epochs, history['val_loss'], 'b-', linewidth=2)
             axes[2].set_xlabel('Epoch'); axes[2].set_ylabel('Val Loss')
             axes[2].set_title('Val Loss vs Epoch'); axes[2].grid(True, alpha=0.3)
 

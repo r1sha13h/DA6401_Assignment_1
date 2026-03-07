@@ -1,68 +1,57 @@
 [
-        {
-        "val_acc": 0.9688,
+    {
+        "val_acc": 0.9825,
         "config": {
             "loss": "cross_entropy",
-            "epochs": 25,
+            "epochs": 15,
             "dataset": "mnist",
-            "optimizer": "sgd",
-            "activation": "relu",
-            "batch_size": 64,
-            "num_layers": 6,
+            "optimizer": "nag",
+            "activation": "sigmoid",
+            "batch_size": 16,
+            "num_layers": 1,
             "hidden_size": [
-                128,
-                128,
-                128,
-                128,
+                128
+            ],
+            "weight_init": "xavier",
+            "weight_decay": 0,
+            "learning_rate": 0.1
+        }
+    },
+    {
+        "val_acc": 0.9821666666666666,
+        "config": {
+            "loss": "cross_entropy",
+            "epochs": 15,
+            "dataset": "mnist",
+            "optimizer": "nag",
+            "activation": "tanh",
+            "batch_size": 64,
+            "num_layers": 1,
+            "hidden_size": [
+                128
+            ],
+            "weight_init": "xavier",
+            "weight_decay": 0,
+            "learning_rate": 0.1
+        }
+    },
+    {
+        "val_acc": 0.9818333333333333,
+        "config": {
+            "loss": "mse",
+            "epochs": 20,
+            "dataset": "mnist",
+            "optimizer": "nag",
+            "activation": "relu",
+            "batch_size": 16,
+            "num_layers": 2,
+            "hidden_size": [
                 128,
                 128
             ],
             "weight_init": "xavier",
-            "weight_decay": 0.0,
+            "weight_decay": 0,
             "learning_rate": 0.01
-        }
-    },
-    {
-        "val_acc": 0.109,
-        "config": {
-            "loss": "mse",
-            "epochs": 25,
-            "dataset": "mnist",
-            "optimizer": "nag",
-            "activation": "sigmoid",
-            "batch_size": 64,
-            "num_layers": 3,
-            "hidden_size": [
-                117,
-                117,
-                117
-            ],
-            "weight_init": "random",
-            "weight_decay": 0.07216614497730967,
-            "learning_rate": 0.003273421932518984
-        }
-    },
-    {
-        "val_acc": 0.109,
-        "config": {
-            "loss": "cross_entropy",
-            "epochs": 20,
-            "dataset": "mnist",
-            "optimizer": "momentum",
-            "activation": "sigmoid",
-            "batch_size": 16,
-            "num_layers": 6,
-            "hidden_size": [
-                81,
-                81,
-                81,
-                81,
-                81,
-                81
-            ],
-            "weight_init": "random",
-            "weight_decay": 0.005839273783580801,
-            "learning_rate": 0.048207107936841805
         }
     }
 ]

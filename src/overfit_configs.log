@@ -1,84 +1,56 @@
-Rank 1: train-test gap 0.0212 (train=0.9877, test=0.9665)
-{
-    "loss": "cross_entropy",
-    "epochs": 25,
-    "dataset": "mnist",
-    "optimizer": "sgd",
-    "activation": "relu",
-    "batch_size": 64,
-    "num_layers": 6,
-    "hidden_size": [
-        128,
-        128,
-        128,
-        128,
-        128,
-        128
-    ],
-    "weight_init": "xavier",
-    "weight_decay": 0.0,
-    "learning_rate": 0.01
-}
+Sweep: mlp-100-sweeps
+================================================================================
+TOP 3 OVERFITTING RUNS (ranked by train_acc - test_acc gap)
+================================================================================
 
-Rank 2: train-test gap 0.0191 (train=0.9953, test=0.9762)
+Rank 1: train_acc=0.9990, test_acc=0.9767, gap=0.0223
+Run: opt=rmsprop_lr=0.001_act=tanh_layers=2_hs=128_bs=16_loss=cross_entropy_wd=0.0_init=random
 {
     "loss": "cross_entropy",
-    "epochs": 25,
+    "epochs": 20,
     "dataset": "mnist",
-    "optimizer": "sgd",
-    "activation": "relu",
-    "batch_size": 64,
-    "num_layers": 6,
-    "hidden_size": [
-        128,
-        128,
-        128,
-        128,
-        128,
-        128
-    ],
-    "weight_init": "xavier",
-    "weight_decay": 0.0,
-    "learning_rate": 0.01
-}
-
-Rank 3: train-test gap 0.0075 (train=0.9670, test=0.9595)
-{
-    "loss": "cross_entropy",
-    "epochs": 10,
-    "dataset": "mnist",
-    "optimizer": "sgd",
-    "activation": "relu",
-    "batch_size": 64,
-    "num_layers": 6,
-    "hidden_size": [
-        128,
-        128,
-        128,
-        128,
-        128,
-        128
-    ],
-    "weight_init": "xavier",
-    "weight_decay": 0.0,
-    "learning_rate": 0.01
-}
-
-Rank 4: train-test gap -0.0040 (train=0.9158, test=0.9198)
-{
-    "loss": "cross_entropy",
-    "epochs": 2,
-    "dataset": "mnist",
-    "optimizer": "sgd",
-    "activation": "relu",
-    "batch_size": 32,
+    "optimizer": "rmsprop",
+    "activation": "tanh",
+    "batch_size": 16,
     "num_layers": 2,
-    "hidden_size": [
-        64,
-        64
-    ],
+    "hidden_size": 128,
+    "weight_init": "random",
+    "weight_decay": 0,
+    "learning_rate": 0.001,
+    "wandb_project": "mlp-100-sweeps"
+}
+
+Rank 2: train_acc=0.9992, test_acc=0.9773, gap=0.0219
+Run: opt=rmsprop_lr=0.001_act=tanh_layers=2_hs=128_bs=16_loss=cross_entropy_wd=0.0_init=xavier
+{
+    "loss": "cross_entropy",
+    "epochs": 20,
+    "dataset": "mnist",
+    "optimizer": "rmsprop",
+    "activation": "tanh",
+    "batch_size": 16,
+    "num_layers": 2,
+    "hidden_size": 128,
     "weight_init": "xavier",
-    "weight_decay": 0.0,
-    "learning_rate": 0.01
+    "weight_decay": 0,
+    "learning_rate": 0.001,
+    "wandb_project": "mlp-100-sweeps"
+}
+
+Rank 3: train_acc=0.9988, test_acc=0.9774, gap=0.0214
+Run: opt=rmsprop_lr=0.001_act=tanh_layers=1_hs=128_bs=64_loss=cross_entropy_wd=0.0_init=xavier
+{
+    "loss": "cross_entropy",
+    "epochs": 20,
+    "dataset": "mnist",
+    "optimizer": "rmsprop",
+    "activation": "tanh",
+    "batch_size": 64,
+    "num_layers": 1,
+    "hidden_size": 128,
+    "weight_init": "xavier",
+    "weight_decay": 0,
+    "learning_rate": 0.001,
+    "wandb_project": "mlp-100-sweeps"
 }
 
