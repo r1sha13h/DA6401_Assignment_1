@@ -125,13 +125,14 @@ DA6401_Assignment_1/
 - Python 3.7+
 - NumPy
 - scikit-learn (for data loading and metrics)
+- matplotlib (for plotting)
 - Weights & Biases (optional, for experiment tracking)
 
 ### Setup
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/r1sha13h/DA6401_Assignment_1.git
 cd DA6401_Assignment_1
 
 # Create and activate virtual environment
@@ -140,11 +141,59 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# (Optional) Login to Weights & Biases for experiment tracking
+wandb login
 ```
 
 ---
 
 ## Usage
+
+### Quick Start - Running Experiments
+
+The project includes a comprehensive experiment suite covering all aspects of neural network training. To run specific experiments:
+
+**Run All Experiments:**
+```bash
+# Run complete experiment suite (Experiments 2.1 through 2.10)
+python src/experiment.py --experiment all --use_wandb --wandb_project mlp-100-sweeps
+```
+
+**Run Individual Experiments:**
+```bash
+# Experiment 2.1: Data Exploration
+python src/experiment.py --experiment 2.1 --use_wandb --wandb_project mlp-100-sweeps
+
+# Experiment 2.2: Hyperparameter Sweep (100 runs)
+python src/experiment.py --experiment 2.2 --use_wandb --wandb_project mlp-100-sweeps --sweep_name mlp-100-sweeps
+
+# Experiment 2.3: Optimizer Comparison
+python src/experiment.py --experiment 2.3 --use_wandb --wandb_project mlp-100-sweeps
+
+# Experiment 2.4: Vanishing Gradient Analysis
+python src/experiment.py --experiment 2.4 --use_wandb --wandb_project mlp-100-sweeps
+
+# Experiment 2.5: Dead Neuron Investigation
+python src/experiment.py --experiment 2.5 --use_wandb --wandb_project mlp-100-sweeps
+
+# Experiment 2.6: Loss Function Comparison
+python src/experiment.py --experiment 2.6 --use_wandb --wandb_project mlp-100-sweeps
+
+# Experiment 2.7: Overfitting Analysis
+python src/experiment.py --experiment 2.7 --use_wandb --wandb_project mlp-100-sweeps --sweep_name mlp-100-sweeps
+
+# Experiment 2.8: Error Analysis
+python src/experiment.py --experiment 2.8 --use_wandb --wandb_project mlp-100-sweeps
+
+# Experiment 2.9: Weight Initialization Impact
+python src/experiment.py --experiment 2.9 --use_wandb --wandb_project mlp-100-sweeps
+
+# Experiment 2.10: Transfer Learning (Fashion-MNIST)
+python src/experiment.py --experiment 2.10 --use_wandb --wandb_project mlp-100-sweeps
+```
+
+**Note:** All experiment plots are automatically saved to `src/plots/Exp-X.X/` directories.
 
 ### Training a Model
 
@@ -514,11 +563,11 @@ for i, layer in enumerate(model.layers):
 
 ### Implementation Highlights
 
-✅ **Pure NumPy**: No PyTorch/TensorFlow for core functionality  
-✅ **Modular Design**: Clean separation of layers, activations, losses, optimizers  
-✅ **Production Features**: Checkpointing, metrics, experiment tracking  
-✅ **Educational**: Well-documented with mathematical foundations  
-✅ **Extensible**: Easy to add new components  
+**Pure NumPy**: No PyTorch/TensorFlow for core functionality  
+**Modular Design**: Clean separation of layers, activations, losses, optimizers  
+**Production Features**: Checkpointing, metrics, experiment tracking  
+**Educational**: Well-documented with mathematical foundations  
+**Extensible**: Easy to add new components  
 
 ### Performance Achievements
 
