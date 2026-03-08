@@ -4,9 +4,9 @@
 
 **Roll No:** DA25M025
 
-**WandB Report:** [https://wandb.ai/rishabh-mishra-cer16-iitmaana/mlp-100-sweeps/reports/Assignment-1--VmlldzoxNjEzNTIyNg](https://wandb.ai/rishabh-mishra-cer16-iitmaana/mlp-100-sweeps/reports/Assignment-1--VmlldzoxNjEzNTIyNg)
+**WandB Report:** [Assignment-1](https://wandb.ai/rishabh-mishra-cer16-iitmaana/mlp-100-sweeps/reports/Assignment-1--VmlldzoxNjEzNTIyNg)
 
-**GitHub Repository:** [https://github.com/r1sha13h/DA6401_Assignment_1](https://github.com/r1sha13h/DA6401_Assignment_1)
+**GitHub Repository:** [DA6401_Assignment_1](https://github.com/r1sha13h/DA6401_Assignment_1)
 
 ---
 
@@ -58,11 +58,28 @@ DA6401_Assignment_1/
 │   ├── utils/                        # Utility functions
 │   │   ├── __init__.py
 │   │   └── data_loader.py           # Data loading & preprocessing (74 lines)
+│   ├── plots/                        # Experiment visualization outputs
+│   │   ├── Exp-2.1/                 # Data exploration plots
+│   │   ├── Exp-2.2/                 # Hyperparameter sweep plots (100+ configs)
+│   │   ├── Exp-2.3/                 # Optimizer comparison plots
+│   │   ├── Exp-2.4/                 # Vanishing gradient analysis
+│   │   ├── Exp-2.5/                 # Dead neuron investigation
+│   │   ├── Exp-2.6/                 # Loss function comparison
+│   │   ├── Exp-2.7/                 # Overfitting analysis
+│   │   ├── Exp-2.8/                 # Error analysis
+│   │   ├── Exp-2.9/                 # Weight initialization impact
+│   │   └── Exp-2.10/                # Transfer learning (Fashion-MNIST)
 │   ├── train.py                      # Training script with CLI (389 lines)
-│   └── inference.py                  # Evaluation script (186 lines)
+│   ├── inference.py                  # Evaluation script (186 lines)
+│   ├── experiment.py                 # Comprehensive experiments suite (1071 lines)
+│   ├── best_config.json              # Top configurations from sweep
+│   ├── best_configs.log              # All 100 sweep configurations ranked
+│   ├── overfit_configs.log           # Top 3 overfitting configurations
+│   └── best_model.npy                # Best model weights
 ├── models/                           # Saved model checkpoints
 ├── requirements.txt                  # Python dependencies
-└── README.md                         # This file
+├── README.md                         # This file
+└── PROJECT_REPORT.md                 # Comprehensive project report with all experiments
 ```
 
 ---
