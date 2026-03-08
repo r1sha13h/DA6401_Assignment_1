@@ -37,10 +37,10 @@
 This project implements a complete Multi-Layer Perceptron (MLP) neural network from scratch using only NumPy, demonstrating fundamental deep learning concepts through comprehensive experimentation. The implementation achieved **98.25% validation accuracy** on MNIST through systematic hyperparameter optimization across 100+ experimental runs.
 
 ### Key Achievements
-- ✅ **Pure NumPy Implementation**: No PyTorch/TensorFlow for core functionality
-- ✅ **Comprehensive Experiments**: 10 distinct experiments analyzing different aspects of neural network training
-- ✅ **Production-Ready**: Full experiment tracking with Weights & Biases integration
-- ✅ **Optimal Configuration Discovered**: NAG optimizer with sigmoid activation achieving 98.25% accuracy
+- **Pure NumPy Implementation**: No PyTorch/TensorFlow for core functionality
+- **Comprehensive Experiments**: 10 distinct experiments analyzing different aspects of neural network training
+- **Production-Ready**: Full experiment tracking with Weights & Biases integration
+- **Optimal Configuration Discovered**: NAG optimizer with sigmoid activation achieving 98.25% accuracy
 
 ---
 
@@ -714,10 +714,10 @@ This project successfully implemented a complete Multi-Layer Perceptron from scr
 
 ### Technical Achievements
 
-- ✅ **Pure NumPy Implementation**: 1,484 lines of production-ready code
-- ✅ **Comprehensive Experimentation**: 10 distinct experiments covering all aspects of neural network training
-- ✅ **Optimal Configuration**: Discovered NAG + Sigmoid + Xavier initialization achieves near state-of-the-art performance
-- ✅ **Full Experiment Tracking**: Integrated Weights & Biases for reproducible research
+- **Pure NumPy Implementation**: 1,484 lines of production-ready code
+- **Comprehensive Experimentation**: 10 distinct experiments covering all aspects of neural network training
+- **Optimal Configuration**: Discovered NAG + Sigmoid + Xavier initialization achieves near state-of-the-art performance
+- **Full Experiment Tracking**: Integrated Weights & Biases for reproducible research
 
 ### Key Learnings
 

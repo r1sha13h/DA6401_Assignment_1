@@ -148,6 +148,9 @@ def main():
             ax1.grid(True)
             plt.tight_layout()
 
+            # Save plot to local folder
+            plt.savefig(os.path.join('plot', f'lr{lr_str}_val_loss.png'))
+
             if args.use_wandb:
                 wandb.log({f"lr{lr_str}_val_loss": wandb.Image(fig1)})
             plt.close(fig1)
@@ -162,6 +165,9 @@ def main():
             ax2.legend()
             ax2.grid(True)
             plt.tight_layout()
+
+            # Save plot to local folder
+            plt.savefig(os.path.join('plot', f'lr{lr_str}_val_acc.png'))
 
             if args.use_wandb:
                 wandb.log({f"lr{lr_str}_val_acc": wandb.Image(fig2)})
@@ -664,9 +670,13 @@ def main():
 
         valid_runs.sort(key=lambda r: r['best_val_acc'], reverse=True)
 
-        # --- Per-run plots: train_acc, test_acc, val_loss (named by hyperparam combo) ---
+        # --- Per-run plots: combined train_acc, test_acc, val_loss in a single plot ---
+        os.makedirs('src/plots', exist_ok=True)
         for rd in valid_runs:
             history = rd['history']
+            # Filter to epoch-level rows only (drop rows where val_acc is NaN)
+            if 'val_acc' in history.columns:
+                history = history.dropna(subset=['val_acc']).reset_index(drop=True)
             config = rd['config']
             epochs = list(range(1, len(history) + 1))
             config_parts = [
@@ -682,27 +692,42 @@ def main():
             ]
             plot_title = " | ".join(config_parts)
 
-            fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+            fig, ax1 = plt.subplots(figsize=(12, 6))
 
+            # Left y-axis: accuracies
             if 'train_acc' in history.columns:
-                axes[0].plot(epochs, history['train_acc'], 'r-o', linewidth=2, markersize=3)
-            axes[0].set_xlabel('Epoch'); axes[0].set_ylabel('Train Accuracy')
-            axes[0].set_title('Train Acc vs Epoch'); axes[0].grid(True, alpha=0.3)
-
+                ax1.plot(epochs, history['train_acc'], 'r-', linewidth=2, label='Train Acc')
             final_test_acc = rd['summary'].get('final_test_acc', None)
             if final_test_acc is not None:
-                axes[1].axhline(y=final_test_acc, color='g', linestyle='--', linewidth=2, label=f'Test Acc: {final_test_acc:.4f}')
-                axes[1].legend()
-            axes[1].set_xlabel('Epoch'); axes[1].set_ylabel('Test Accuracy')
-            axes[1].set_title('Test Acc'); axes[1].grid(True, alpha=0.3)
+                ax1.axhline(y=final_test_acc, color='g', linestyle='--', linewidth=2, label=f'Test Acc: {final_test_acc:.4f}')
+            if 'val_acc' in history.columns:
+                ax1.plot(epochs, history['val_acc'], 'm-', linewidth=2, label='Val Acc')
+            ax1.set_xlabel('Epoch')
+            ax1.set_ylabel('Accuracy')
+            ax1.grid(True, alpha=0.3)
 
+            # Right y-axis: val loss
+            ax2 = ax1.twinx()
             if 'val_loss' in history.columns:
-                axes[2].plot(epochs, history['val_loss'], 'b-o', linewidth=2, markersize=3)
-            axes[2].set_xlabel('Epoch'); axes[2].set_ylabel('Validation Loss')
-            axes[2].set_title('Val Loss vs Epoch'); axes[2].grid(True, alpha=0.3)
+                ax2.plot(epochs, history['val_loss'], 'b-', linewidth=2, label='Val Loss')
+            ax2.set_ylabel('Validation Loss')
+
+            # Combined legend
+            lines1, labels1 = ax1.get_legend_handles_labels()
+            lines2, labels2 = ax2.get_legend_handles_labels()
+            ax1.legend(lines1 + lines2, labels1 + labels2, loc='center right')
 
             fig.suptitle(plot_title, fontsize=9, y=1.02)
             plt.tight_layout()
+
+            # Save plot locally
+            fname = (f"opt-{config.get('optimizer','x')}_lr-{config.get('learning_rate','x')}"
+                     f"_act-{config.get('activation','x')}_layers-{config.get('num_layers','x')}"
+                     f"_hs-{config.get('hidden_size','x')}_bs-{config.get('batch_size','x')}"
+                     f"_loss-{config.get('loss','x')}_wd-{config.get('weight_decay','x')}"
+                     f"_init-{config.get('weight_init','x')}.png")
+            plt.savefig(os.path.join('src', 'plots', fname), bbox_inches='tight', dpi=150)
+
             if args.use_wandb:
                 wandb.log({f"run_{rd['name']}_curves": wandb.Image(fig)})
             plt.close(fig)
@@ -895,6 +920,9 @@ def main():
 
         for i, rd in enumerate(all_runs_data):
             history = rd['history']
+            # Filter to epoch-level rows only (drop rows where val_acc is NaN)
+            if 'val_acc' in history.columns:
+                history = history.dropna(subset=['val_acc']).reset_index(drop=True)
             epochs = list(range(1, len(history) + 1))
             c = colors_cycle[i % len(colors_cycle)]
             label = rd['run_name'][:20]
@@ -919,9 +947,13 @@ def main():
             wandb.log({"overlay_all_runs": wandb.Image(fig)})
         plt.close(fig)
 
-        # --- Top 3 overfit runs: individual train_acc, test_acc, val_loss vs epochs ---
+        # --- Top 3 overfit runs: combined train_acc, val_acc, test_acc, val_loss in a single plot ---
+        os.makedirs('src/plots', exist_ok=True)
         for rank, rd in enumerate(top3_overfit):
             history = rd['history']
+            # Filter to epoch-level rows only (drop rows where val_acc is NaN)
+            if 'val_acc' in history.columns:
+                history = history.dropna(subset=['val_acc']).reset_index(drop=True)
             epochs = list(range(1, len(history) + 1))
             config = rd['config']
             config_parts = [
@@ -933,26 +965,40 @@ def main():
             ]
             plot_title = f"Overfit #{rank+1} (gap={rd['gap']:.4f}) | " + " | ".join(config_parts)
 
-            fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+            fig, ax1 = plt.subplots(figsize=(12, 6))
 
+            # Left y-axis: accuracies
             if 'train_acc' in history.columns:
-                axes[0].plot(epochs, history['train_acc'], 'r-', linewidth=2)
-            axes[0].set_xlabel('Epoch'); axes[0].set_ylabel('Train Accuracy')
-            axes[0].set_title('Train Acc vs Epoch'); axes[0].grid(True, alpha=0.3)
-
-            axes[1].plot(epochs, [rd['test_acc']] * len(epochs), 'g--', linewidth=2, label=f'Test Acc: {rd["test_acc"]:.4f}')
+                ax1.plot(epochs, history['train_acc'], 'r-', linewidth=2, label='Train Acc')
             if 'val_acc' in history.columns:
-                axes[1].plot(epochs, history['val_acc'], 'g-', linewidth=2, label='Val Acc')
-            axes[1].set_xlabel('Epoch'); axes[1].set_ylabel('Accuracy')
-            axes[1].set_title('Test/Val Acc vs Epoch'); axes[1].legend(); axes[1].grid(True, alpha=0.3)
+                ax1.plot(epochs, history['val_acc'], 'm-', linewidth=2, label='Val Acc')
+            ax1.axhline(y=rd['test_acc'], color='g', linestyle='--', linewidth=2, label=f'Test Acc: {rd["test_acc"]:.4f}')
+            ax1.set_xlabel('Epoch')
+            ax1.set_ylabel('Accuracy')
+            ax1.grid(True, alpha=0.3)
 
+            # Right y-axis: val loss
+            ax2 = ax1.twinx()
             if 'val_loss' in history.columns:
-                axes[2].plot(epochs, history['val_loss'], 'b-', linewidth=2)
-            axes[2].set_xlabel('Epoch'); axes[2].set_ylabel('Val Loss')
-            axes[2].set_title('Val Loss vs Epoch'); axes[2].grid(True, alpha=0.3)
+                ax2.plot(epochs, history['val_loss'], 'b-', linewidth=2, label='Val Loss')
+            ax2.set_ylabel('Validation Loss')
+
+            # Combined legend
+            lines1, labels1 = ax1.get_legend_handles_labels()
+            lines2, labels2 = ax2.get_legend_handles_labels()
+            ax1.legend(lines1 + lines2, labels1 + labels2, loc='center right')
 
             fig.suptitle(plot_title, fontsize=9, y=1.02)
             plt.tight_layout()
+
+            # Save overfit plot locally
+            fname = (f"overfit_opt-{config.get('optimizer','x')}_lr-{config.get('learning_rate','x')}"
+                     f"_act-{config.get('activation','x')}_layers-{config.get('num_layers','x')}"
+                     f"_hs-{config.get('hidden_size','x')}_bs-{config.get('batch_size','x')}"
+                     f"_loss-{config.get('loss','x')}_wd-{config.get('weight_decay','x')}"
+                     f"_init-{config.get('weight_init','x')}.png")
+            plt.savefig(os.path.join('src', 'plots', fname), bbox_inches='tight', dpi=150)
+
             if args.use_wandb:
                 wandb.log({f"overfit_rank{rank+1}_{rd['run_name']}_curves": wandb.Image(fig)})
             plt.close(fig)

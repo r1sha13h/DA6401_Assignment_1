@@ -513,26 +513,26 @@ python src/train.py -d mnist -e 20 -b 64 -o rmsprop -lr 0.001 \
 ### Troubleshooting
 
 **Loss Not Decreasing:**
-- ✓ Check learning rate (try 0.001-0.01)
-- ✓ Verify data normalization ([0, 1])
-- ✓ Print gradient norms
-- ✓ Try RMSProp optimizer
+- Check learning rate (try 0.001-0.01)
+- Verify data normalization ([0, 1])
+- Print gradient norms
+- Try RMSProp optimizer
 
 **Loss is NaN:**
-- ✓ Reduce learning rate
-- ✓ Check softmax numerical stability
-- ✓ Verify weight initialization
-- ✓ Add gradient clipping
+- Reduce learning rate
+- Check softmax numerical stability
+- Verify weight initialization
+- Add gradient clipping
 
 **Overfitting (train >> val):**
-- ✓ Add L2 regularization (`--weight_decay 0.0001`)
-- ✓ Reduce model size
-- ✓ Implement early stopping
+- Add L2 regularization (`--weight_decay 0.0001`)
+- Reduce model size
+- Implement early stopping
 
 **Underfitting (low train & val):**
-- ✓ Increase model capacity
-- ✓ Train more epochs
-- ✓ Reduce regularization
+- Increase model capacity
+- Train more epochs
+- Reduce regularization
 
 ### Debugging Checklist
 
