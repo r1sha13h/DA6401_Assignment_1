@@ -168,6 +168,10 @@ For each layer `l`:
 - Visual inspection confirms model learns meaningful digit representations
 - The 5→6 misclassification shown above is typical: both digits share curved upper portions
 
+**Q: How does visual similarity impact the model?**
+
+Visually similar classes directly create ambiguous decision boundaries in the model's learned feature space. Since the MLP operates on raw pixel values, it must learn to distinguish digits purely through weight patterns. When two classes share strong geometric features (e.g., 4 and 9 both having closed loops, or 3 and 5 sharing curved segments), the model's learned representations in the hidden layers naturally overlap. This forces the final classification layer to make a probabilistic distinction in a very narrow margin, making misclassification more probable even at high confidence. In practice, this manifests as the most common error pairs in the confusion matrix (4↔9, 3↔5, 7↔9) directly matching the visually similar pairs identified above, confirming that pixel-space similarity drives model confusion.
+
 ---
 
 ### Experiment 2.2: Hyperparameter Sweep Analysis
@@ -277,6 +281,14 @@ The following plots show training accuracy, validation accuracy, test accuracy, 
    - LR=0.01: All momentum-based optimizers perform well
    - LR=0.1: SGD/Momentum/NAG excel, RMSProp completely fails (adaptive learning rate incompatible with high LR)
 
+**Q: Which optimizer minimized the loss fastest in the first 5 epochs?**
+
+At LR=0.001, **RMSProp** minimized the loss fastest — it starts near 0.1 from epoch 1 while NAG/Momentum begin at ~1.6 and SGD stays above 2.0. At LR=0.01, **NAG and Momentum** converge fastest in the first 5 epochs (dropping to ~0.1 within 3 epochs). Overall across learning rates, RMSProp at a low learning rate or NAG/Momentum at moderate learning rates achieve the fastest early convergence.
+
+**Q: Theoretically, why does RMSProp often outperform standard SGD on image classification?**
+
+RMSProp adapts the learning rate per-parameter using a running average of squared gradients: `v = β·v + (1-β)·g²`, then updates `θ = θ - (lr/√v)·g`. This has two key advantages over SGD: (1) **Per-parameter scaling** — parameters with large historical gradients (e.g., common pixel features) get smaller updates, while sparse features get larger updates, allowing fine-grained optimization. (2) **Automatic dampening** — in directions where gradients oscillate (common in high-dimensional image space), the denominator grows, reducing step size and stabilizing training. SGD uses a single global learning rate that cannot adapt to the geometry of the loss landscape, forcing a conservative rate to avoid divergence and slowing overall convergence.
+
 ---
 
 ### Experiment 2.4: Vanishing Gradient Analysis
@@ -324,6 +336,10 @@ The following plots show training accuracy, validation accuracy, test accuracy, 
 3. **Tanh**: Better than Sigmoid but still suffers from gradient decay in deep networks
 4. **Practical Implication**: ReLU is essential for training deep networks (>3 layers)
 5. **Xavier Initialization**: Helps mitigate vanishing gradients for Tanh/Sigmoid but doesn't eliminate the problem
+
+**Q: Do you observe the vanishing gradient problem with Sigmoid?**
+
+**Yes, confirmed.** The Sigmoid gradient norm plot directly demonstrates the vanishing gradient problem. Sigmoid's derivative is `σ'(x) = σ(x)·(1-σ(x))`, which has a maximum value of 0.25 at x=0 and approaches 0 as inputs saturate in either direction. In a deep network, gradients are multiplied through each layer via backpropagation — with each layer multiplying by ≤0.25, a 5-layer network reduces gradients by a factor of 0.25⁵ = 0.001 or less. The gradient norm plot confirms this: Sigmoid's first-layer gradients are near-zero from the very start of training, while ReLU (whose derivative is either 0 or 1) maintains healthy gradient magnitudes throughout. This is the classic vanishing gradient problem that made training deep networks with Sigmoid practically impossible before ReLU became standard.
 
 ---
 
@@ -400,6 +416,17 @@ The following plots show training accuracy, validation accuracy, test accuracy, 
 5. **Tanh Immunity**: Zero dead neurons at all learning rates, but LR=0.1 still fails due to optimization divergence (not dead neurons)
 6. **Critical Insight**: Dead ReLU problem is not gradual - it causes sudden catastrophic collapse when learning rate exceeds threshold
 
+**Q: Where does validation accuracy plateau early with dead neurons?**
+
+The **ReLU LR=0.01 run** is the clearest example. The validation accuracy plot shows it starting at 90% but collapsing irreversibly to ~10-20% after epoch 10, correlated exactly with the heatmap showing massive black regions in deeper layers (4, 5, 6). These are dead neurons — ReLU outputs zero for all inputs when the pre-activation is negative, which happens permanently once large weight updates push neurons into the negative region. Once a neuron is dead, its gradient is zero, so no further weight update can revive it ("dying ReLU" problem).
+
+**Q: Compare with a Tanh run — explain the difference in convergence based on gradients observed.**
+
+At the same LR=0.01, the **Tanh run reaches 92%** and recovers from oscillations, while the **ReLU run collapses to 10%**. The fundamental difference is gradient behaviour:
+- **ReLU dead neurons**: Once a neuron's weight pushes it to always receive negative pre-activation, `f'(x) = 0` permanently. The neuron contributes zero gradient forever, removing it from the network entirely. At LR=0.01, enough neurons die to destroy network capacity.
+- **Tanh gradients**: Tanh's derivative `tanh'(x) = 1 - tanh²(x)` is always non-zero (range: 0 < tanh'(x) ≤ 1). Even at LR=0.01, every neuron continues to receive and propagate gradients. The Tanh heatmap is completely white (zero dead neurons) confirming all neurons remain active throughout training.
+- **Conclusion**: ReLU's one-sided saturation creates permanent neuron death under high learning rates, whereas Tanh's symmetric bounded output allows recovery from large updates without permanent capacity loss.
+
 ---
 
 ### Experiment 2.6: Loss Function Comparison
@@ -438,6 +465,14 @@ The following plots show training accuracy, validation accuracy, test accuracy, 
 4. **Network Depth**: Performance gap widens in deeper networks (5 layers)
 5. **Theoretical Justification**: Cross-Entropy gradient matches softmax output better for classification
 
+**Q: Which loss function converged faster?**
+
+**Cross-Entropy converged significantly faster** in both the 3-layer and 5-layer networks. The Cross-Entropy plots show rapid validation accuracy improvement and loss reduction within the first 5 epochs, while MSE plots show slower, more gradual improvement across the same epochs.
+
+**Q: Theoretically, why is Cross-Entropy better suited for multi-class classification when paired with Softmax?**
+
+When Softmax is used in the output layer, the gradient of Cross-Entropy loss with respect to the pre-activation logits simplifies to `∂L/∂zᵢ = pᵢ - yᵢ` (predicted probability minus true label). This is a clean, linearly-scaled signal that is large when the model is wrong and small when it is correct. In contrast, MSE loss with Softmax produces a more complex gradient: `∂L/∂zᵢ = Σⱼ (pⱼ - yⱼ)·pⱼ·(δᵢⱼ - pᵢ)`, which includes second-order softmax terms. This makes MSE gradients small even when the model is very wrong (because softmax outputs near 0 or 1 produce near-zero MSE gradients — a form of saturation). Cross-Entropy avoids this because the log in `L = -Σ yᵢ log(pᵢ)` perfectly cancels the softmax exponential, giving gradients that scale directly with prediction error and never saturate.
+
 ---
 
 ### Experiment 2.7: Overfitting Analysis
@@ -473,12 +508,20 @@ The following plots show training accuracy, validation accuracy, test accuracy, 
 1. **Common Pattern**: All overfit runs use RMSProp with Tanh activation
 2. **Zero Regularization**: No weight decay allows unconstrained memorization
 3. **Small Batch Sizes**: Batch size 16 provides less regularization than larger batches
-4. **Train-Test Gap**: Overfit runs show 5-10% gap between train and test accuracy
+4. **Train-Test Gap**: Overfit runs show 2-3% gap between train and test accuracy
 5. **Mitigation Strategies**:
    - Add L2 regularization (weight_decay = 0.0001-0.001)
    - Increase batch size to 64-128
    - Use ReLU instead of Tanh
    - Implement early stopping
+
+**Q: What does the train-test accuracy gap indicate about the model?**
+
+The gap between training accuracy (~99.9%) and test accuracy (~97.7%) indicates **overfitting** — the model has memorized training data patterns that do not generalize to unseen examples. Specifically:
+- **High train accuracy** (99.9%) shows the model has near-perfectly fit the training distribution, including noise and dataset-specific quirks
+- **Lower test accuracy** (97.7%) reveals that approximately 2.2% of what the model "learned" is specific to training examples, not the underlying digit recognition task
+- **The gap is a generalization error estimate**: it quantifies how much the model has over-specialized. A gap of 0 would mean perfect generalization; a large gap (e.g., >5%) indicates severe overfitting requiring regularization
+- **Root cause for these runs**: zero weight decay (no L2 penalty) combined with RMSProp's adaptive learning rate enables rapid, aggressive fitting of training examples. The model has sufficient capacity (128 neurons per layer) to memorize training examples rather than learn robust features, and without regularization, there is no cost to doing so.
 
 ---
 
@@ -542,10 +585,10 @@ The following plots show training accuracy, validation accuracy, test accuracy, 
 
 **Zero Initialization (Broken)**:
 ![Zero Val Acc](src/plots/Exp-2.9/Exp-2.9_Val_Acc_Zero_Weight_Init.png)
-*Zero initialization completely fails with validation accuracy stuck at 11% (random guessing level) throughout all 50 epochs, proving symmetry breaking is essential.*
+*Zero initialization completely fails with validation accuracy stuck at 44% (random guessing level) throughout all 50 epochs, proving symmetry breaking is essential.*
 
 ![Zero Val Loss](src/plots/Exp-2.9/Exp-2.9_Val_Loss_Zero_Weight_Init.png)
-*Validation loss remains catastrophically high (~2.3) with no improvement over 50 epochs, indicating the network cannot learn anything meaningful without proper initialization.*
+*Validation loss remains catastrophically high (~1.5) with no improvement over 50 epochs, indicating the network cannot learn anything meaningful without proper initialization.*
 
 ![Zero Gradients](src/plots/Exp-2.9/Exp-2.9_Gradient_Norms_Neurons_Zeros.png)
 *All five neurons exhibit identical, overlapping gradient norms (ranging 0.01-0.045), demonstrating perfect symmetry where every neuron computes the exact same function - no feature diversity possible.*
@@ -556,6 +599,14 @@ The following plots show training accuracy, validation accuracy, test accuracy, 
 3. **Gradient Flow**: Zero init causes identical gradients (0.01-0.045 range, all overlapping), Xavier maintains diverse healthy flow (0.0-0.05 range, non-overlapping)
 4. **Convergence**: Xavier reaches 97% accuracy, Zero init stuck at ~10% (random guessing)
 5. **Critical Lesson**: Weight initialization is not optional - it's fundamental to neural network training
+
+**Q: In the "Zeros" run, gradients for all neurons are identical. Why does this symmetry prevent learning complex, distinct features?**
+
+When all weights are initialized to zero, every neuron in a layer receives identical inputs and computes an identical pre-activation: `zᵢ = Σ wᵢⱼ · xⱼ + b = 0` for all i. During backpropagation, the gradient for each neuron's weights is `∂L/∂wᵢⱼ = δᵢ · xⱼ`, where `δᵢ` (the error signal reaching neuron i) is also identical for all neurons in the same layer because it depends on the weights of the next layer — which are also all zero and identical. Therefore **every neuron receives the exact same gradient update**, meaning after each training step all neurons in a layer still have identical weights. This is the **symmetry problem**: the network effectively has only one neuron per layer regardless of its declared width. To learn complex features (e.g., one neuron detecting vertical edges, another detecting curves), neurons must start with different weights so that they respond differently to inputs and receive different gradient signals. Zero initialization makes this mathematically impossible.
+
+**Q: Even if total loss decreases slightly, what's happening to individual neurons? Why is symmetry breaking mathematically necessary?**
+
+The gradient norm plot for Zero initialization shows all 5 neuron lines **completely overlapping** throughout 50 epochs — they are not just similar, they are **exactly identical**. This means: even if the global loss decreases slightly (the output layer has a single neuron that can still move), the hidden layer neurons remain in perfect lockstep. They collectively form a single effective neuron — the network's representational capacity collapses from `n × hidden_size` parameters to effectively `n` parameters (one per layer). Mathematically, for an MLP to approximate complex functions, it requires neurons to develop **linearly independent weight vectors** (by the Universal Approximation Theorem). Zero initialization forces all weight vectors to be identical (linearly dependent), preventing the network from spanning the required function space. Xavier initialization breaks this symmetry by sampling weights from `N(0, 2/(nᵢₙ + nₒᵤₜ))`, ensuring diverse initial representations so each neuron can specialize during training.
 
 ---
 
@@ -589,6 +640,22 @@ The following plots show training accuracy, validation accuracy, test accuracy, 
 3. **Activation Impact**: ReLU (88%) significantly outperforms Sigmoid (83%) and Tanh (82.7%) on Fashion-MNIST
 4. **Network Depth**: 2-layer network (Config 3) outperforms 1-layer networks (Configs 1 & 2) by 5%
 5. **Lesson**: Deeper networks with ReLU activation generalize better to complex visual tasks than shallow networks with saturating activations
+
+**Q: Did the best MNIST configuration also work best for clothing?**
+
+**No.** The best MNIST configuration (Config 1: NAG, Sigmoid, 1 layer, LR=0.1) achieved only **83.03%** on Fashion-MNIST, while Config 3 (NAG, ReLU, 2 layers, LR=0.01) — the third-best MNIST config — achieved **88.03%**, outperforming the top MNIST configuration by 5%. This demonstrates that MNIST-optimal hyperparameters do not directly transfer to Fashion-MNIST.
+
+**Q: Why does dataset complexity affect hyperparameter choice?**
+
+Fashion-MNIST is fundamentally more complex than MNIST digits for several reasons, and each complexity dimension demands different hyperparameter strategies:
+
+1. **Feature complexity**: Clothing items (T-shirts, shoes, bags) have complex textures, shapes, and intra-class variation that require richer representations. A single hidden layer (128 neurons) is insufficient — Config 3's 2-layer architecture provides the hierarchical feature extraction needed for fashion items, where first-layer features (edges, textures) must be composed into second-layer concepts (sleeves, soles).
+
+2. **Learning rate sensitivity**: Fashion-MNIST's more complex loss landscape requires a more conservative learning rate. Config 1 uses LR=0.1 which works for MNIST (smooth, simple loss landscape) but produces noisy unstable training on Fashion-MNIST. Config 3's LR=0.01 navigates the complex Fashion-MNIST landscape more carefully.
+
+3. **Activation function**: Sigmoid saturates on fashion item features where pixel intensity distributions are more varied than digits. ReLU's non-saturating nature handles the wider range of feature activations in clothing images more effectively.
+
+4. **General principle**: As dataset complexity increases, optimal hyperparameters shift toward: deeper architectures, lower learning rates, non-saturating activations (ReLU), and stronger regularization — the hyperparameter choices that proved suboptimal for simple MNIST become essential for complex Fashion-MNIST.
 
 ---
 
@@ -679,7 +746,6 @@ This project successfully implemented a complete Multi-Layer Perceptron from scr
 
 ---
 
-**Report Generated**: March 2026  
 **Total Experiments**: 10  
 **Total Plots**: 130+  
 **Best Validation Accuracy**: 98.25%  
