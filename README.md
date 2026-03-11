@@ -6,6 +6,8 @@
 
 **WandB Report:** [Assignment-1](https://wandb.ai/rishabh-mishra-cer16-iitmaana/mlp-100-sweeps/reports/Assignment-1--VmlldzoxNjEzNTIyNg)
 
+**Project Report[Alternate to Wandb]:** [Assignment-1](https://github.com/r1sha13h/DA6401_Assignment_1/blob/main/PROJECT_REPORT.md)
+
 **GitHub Repository:** [DA6401_Assignment_1](https://github.com/r1sha13h/DA6401_Assignment_1)
 
 ---
